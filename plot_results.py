@@ -1,50 +1,50 @@
 import sys
+import os
 import pandas as pd
 import matplotlib.pyplot as plt
 
-# Get short and long MA from command-line arguments
-if len(sys.argv) < 3:
-    print("Usage: python plot_results.py <short_MA> <long_MA>")
-    sys.exit(1)
-
+# Get EMA periods from command line
 short_ma = int(sys.argv[1])
 long_ma = int(sys.argv[2])
 
-# Read backtest results
-data = pd.read_csv("portfolio_results.csv")
-
-# Convert Date to datetime
+# Read CSV
+data = pd.read_csv("output/portfolio_results.csv")
 data['Date'] = pd.to_datetime(data['Date'], format='%Y-%m-%d')
 
-# Calculate moving averages
-data['MA_Short'] = data['Close'].rolling(window=short_ma).mean()
-data['MA_Long'] = data['Close'].rolling(window=long_ma).mean()
-
-# Plot Close price with Buy/Sell signals and MAs
-plt.figure(figsize=(14,6))
-plt.plot(data['Date'], data['Close'], label='Close Price', color='blue')
-plt.plot(data['Date'], data['MA_Short'], label=f'MA{short_ma}', color='green', linestyle='--')
-plt.plot(data['Date'], data['MA_Long'], label=f'MA{long_ma}', color='red', linestyle='--')
-
-# Plot Buy/Sell markers
+# Buy/Sell markers
 buy_signals = data[data['Signal'] == 'BUY']
 sell_signals = data[data['Signal'] == 'SELL']
-plt.scatter(buy_signals['Date'], buy_signals['Close'], marker='^', color='green', label='Buy', s=100)
-plt.scatter(sell_signals['Date'], sell_signals['Close'], marker='v', color='red', label='Sell', s=100)
 
-plt.title("Backtest: Stock Price with MAs and Buy/Sell Signals")
-plt.xlabel("Date")
-plt.ylabel("Price")
-plt.legend()
-plt.grid(True)
-plt.show()
+# Create a single figure with 3 subplots (Price+EMAs, Portfolio, RSI)
+fig, axes = plt.subplots(3, 1, figsize=(14, 12), sharex=True)
 
-# Plot Portfolio value over time
-plt.figure(figsize=(14,6))
-plt.plot(data['Date'], data['Portfolio'], label='Portfolio Value', color='purple')
-plt.title("Portfolio Value Over Time")
-plt.xlabel("Date")
-plt.ylabel("Portfolio Value")
-plt.legend()
-plt.grid(True)
+# --- Subplot 1: Price + EMAs + Signals ---
+axes[0].plot(data['Date'], data['Close'], label='Close', color='blue')
+axes[0].plot(data['Date'], data['EMA_Short'], label=f'EMA{short_ma}', color='green', linestyle='--')
+axes[0].plot(data['Date'], data['EMA_Long'], label=f'EMA{long_ma}', color='red', linestyle='--')
+axes[0].scatter(buy_signals['Date'], buy_signals['Close'], marker='^', color='green', s=100, label='Buy')
+axes[0].scatter(sell_signals['Date'], sell_signals['Close'], marker='v', color='red', s=100, label='Sell')
+axes[0].set_ylabel("Price")
+axes[0].set_title("Stock Price with EMA and Buy/Sell Signals")
+axes[0].legend()
+axes[0].grid(True)
+
+# --- Subplot 2: Portfolio Value ---
+axes[1].plot(data['Date'], data['Portfolio'], label='Portfolio', color='purple')
+axes[1].set_ylabel("Portfolio Value")
+axes[1].set_title("Portfolio Value Over Time")
+axes[1].legend()
+axes[1].grid(True)
+
+# --- Subplot 3: RSI ---
+axes[2].plot(data['Date'], data['RSI'], label='RSI', color='orange')
+axes[2].axhline(70, color='red', linestyle='--')
+axes[2].axhline(30, color='green', linestyle='--')
+axes[2].set_xlabel("Date")
+axes[2].set_ylabel("RSI")
+axes[2].set_title("RSI Over Time")
+axes[2].legend()
+axes[2].grid(True)
+
+plt.tight_layout()
 plt.show()

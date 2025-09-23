@@ -1,0 +1,1 @@
+g++ main.cpp StockData.cpp Indicators.cpp Backtest.cpp Utils.cpp -o backtest
