@@ -8,3 +8,6 @@ env/
 
 # OS files
 .DS_Store
+
+# Executable
+*.exe

@@ -5,89 +5,127 @@
 #include <sstream>
 #include <cstdlib> // for system()
 
-struct DayData {
-    std::string date;
-    double close;
+struct DayData
+{
+	std::string date;
+	double close;
 };
 
-// Function to read CSV
-std::vector<DayData> readCSV(const std::string& filename) {
-    std::vector<DayData> data;
-    std::ifstream file(filename);
-    std::string line;
-    getline(file, line); // skip header
+// Read CSV downloaded from yfinance (skip extra header rows)
+std::vector<DayData> readCSV(const std::string &filename)
+{
+	std::vector<DayData> data;
+	std::ifstream file(filename);
+	if (!file.is_open())
+	{
+		std::cerr << "Error opening file " << filename << "\n";
+		return data;
+	}
 
-    while (getline(file, line)) {
-        std::stringstream ss(line);
-        std::string date_str, price_str;
-        getline(ss, date_str, ',');
-        getline(ss, price_str, ',');
-        DayData day;
-        day.date = date_str;
-        day.close = std::stod(price_str);
-        data.push_back(day);
-    }
-    return data;
+	std::string line;
+	// Skip first 3 header rows (Price, Ticker, Date,,,,,)
+	for (int i = 0; i < 3; ++i)
+		getline(file, line);
+
+	while (getline(file, line))
+	{
+		if (line.empty())
+			continue;
+		std::stringstream ss(line);
+		std::string date_str, close_str;
+		getline(ss, date_str, ',');	 // Date
+		getline(ss, close_str, ','); // Close
+		try
+		{
+			DayData day;
+			day.date = date_str;
+			day.close = std::stod(close_str);
+			data.push_back(day);
+		}
+		catch (...)
+		{
+			continue; // skip invalid rows
+		}
+	}
+	return data;
 }
 
-// Function to calculate moving average
-double movingAverage(const std::vector<DayData>& data, int endIndex, int window) {
-    if (endIndex + 1 < window) return 0; // not enough data
-    double sum = 0;
-    for (int i = endIndex - window + 1; i <= endIndex; ++i)
-        sum += data[i].close;
-    return sum / window;
+// Calculate moving average
+double movingAverage(const std::vector<DayData> &data, int endIndex, int window)
+{
+	if (endIndex + 1 < window)
+		return 0; // not enough data
+	double sum = 0;
+	for (int i = endIndex - window + 1; i <= endIndex; ++i)
+		sum += data[i].close;
+	return sum / window;
 }
 
-int main() {
-    // Parameters
-    std::string filename = "stock_prices.csv";
-    int shortWindow = 20; // 20-day MA
-    int longWindow = 50;  // 50-day MA
-    double cash = 10000;  // initial capital
-    int shares = 0;
+int main()
+{
+	// --- Parameters ---
+	std::cout << "Enter the CSV file name: ";
+	std::string filename;
+	std::getline(std::cin, filename);
+	//  = "stock_prices.csv"; // CSV from yfinance
+	int shortWindow, longWindow;
+	double cash = 10000; // initial capital
+	int shares = 0;
 
-    // Read data
-    std::vector<DayData> data = readCSV(filename);
+	std::cout << "Enter short-term MA period (e.g., 20): ";
+	std::cin >> shortWindow;
+	std::cout << "Enter long-term MA period (e.g., 50): ";
+	std::cin >> longWindow;
 
-    std::vector<std::string> signals(data.size(), "HOLD");
-    std::vector<double> portfolio(data.size(), 0);
+	// --- Read Data ---
+	std::vector<DayData> data = readCSV(filename);
+	if (data.empty())
+	{
+		std::cerr << "No data found. Check CSV formatting!\n";
+		return 1;
+	}
 
-    // Backtest
-    for (size_t i = 0; i < data.size(); ++i) {
-        double shortMA = movingAverage(data, i, shortWindow);
-        double longMA = movingAverage(data, i, longWindow);
+	std::vector<std::string> signals(data.size(), "HOLD");
+	std::vector<double> portfolio(data.size(), 0);
 
-        // Generate signals
-        if (shortMA > longMA && shares == 0) {
-            // Buy signal
-            shares = cash / data[i].close;
-            cash = 0;
-            signals[i] = "BUY";
-        } else if (shortMA < longMA && shares > 0) {
-            // Sell signal
-            cash = shares * data[i].close;
-            shares = 0;
-            signals[i] = "SELL";
-        }
+	// --- Backtest ---
+	for (size_t i = 0; i < data.size(); ++i)
+	{
+		double shortMA = movingAverage(data, i, shortWindow);
+		double longMA = movingAverage(data, i, longWindow);
 
-        // Portfolio value
-        portfolio[i] = cash + shares * data[i].close;
-    }
+		if (shortMA > longMA && shares == 0)
+		{
+			// Buy
+			shares = cash / data[i].close;
+			cash = 0;
+			signals[i] = "BUY";
+		}
+		else if (shortMA < longMA && shares > 0)
+		{
+			// Sell
+			cash = shares * data[i].close;
+			shares = 0;
+			signals[i] = "SELL";
+		}
 
-    // Export results
-    std::string output_csv = "portfolio_results.csv";
-    std::ofstream out(output_csv);
-    out << "Date,Close,Signal,Portfolio\n";
-    for (size_t i = 0; i < data.size(); ++i)
-        out << data[i].date << "," << data[i].close << "," << signals[i] << "," << portfolio[i] << "\n";
-    out.close();
+		// Portfolio value
+		portfolio[i] = cash + shares * data[i].close;
+	}
 
-    std::cout << "Backtest complete! Results saved in " << output_csv << "\n";
+	// --- Write CSV ---
+	std::string output_csv = "portfolio_results.csv";
+	std::ofstream out(output_csv);
+	out << "Date,Close,Signal,Portfolio\n";
+	for (size_t i = 0; i < data.size(); ++i)
+		out << data[i].date << "," << data[i].close << "," << signals[i] << "," << portfolio[i] << "\n";
+	out.close();
 
-    // Automatically call Python visualization
-    std::cout << "Launching Python visualization...\n";
-    system("python plot_results.py"); // Make sure plot_results.py exists in the same folder
+	std::cout << "Backtest complete! Results saved in " << output_csv << "\n";
 
-    return 0;
+	// --- Call Python visualization ---
+	std::cout << "Launching Python visualization...\n";
+	system("python plot_results.py"); // Make sure plot_results.py is in the same folder
+
+	return 0;
 }
