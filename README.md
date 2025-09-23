@@ -91,7 +91,7 @@ You’ll be prompted to enter:
 ## 📊 Example Output
 - **CSV File:** Portfolio performance with signals and indicators.  
 - **Plot:** Stock price, moving averages, RSI, and BUY/SELL markers.  
-
+![Sample Output Chart](sample_output.png)
 ---
 
 ## 🔮 Future Improvements
