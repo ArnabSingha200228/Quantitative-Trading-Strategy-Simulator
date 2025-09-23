@@ -125,7 +125,9 @@ int main()
 
 	// --- Call Python visualization ---
 	std::cout << "Launching Python visualization...\n";
-	system("python plot_results.py"); // Make sure plot_results.py is in the same folder
+	// After writing portfolio_results.csv, call Python with MA periods
+	std::string python_cmd = "python plot_results.py " + std::to_string(shortWindow) + " " + std::to_string(longWindow);
+	system(python_cmd.c_str());
 
 	return 0;
 }
