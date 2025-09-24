@@ -36,14 +36,19 @@ This project integrates **data retrieval, strategy backtesting, and visualizatio
 ```
 project/
 │── main.cpp               # Entry point of the C++ program
-│── header/                # Core logic modules
-│   ├── StockData.h/.cpp   # Handles stock data loading
-│   ├── Indicators.h/.cpp  # Implements MA & RSI indicators
-│   ├── Backtest.h/.cpp    # Trading logic & backtesting
-│   ├── Utils.h/.cpp       # Python integration utilities
-│── scripts/
-│   ├── download_data.py   # Downloads stock data using yfinance
-│   ├── plot_results.py    # Visualizes signals & portfolio
+│── include/                # Core logic modules
+│   ├── StockData.h   # Handles stock data loading
+│   ├── Indicators.h  # Implements MA & RSI indicators
+│   ├── Backtest.h    # Trading logic & backtesting
+│   ├── Utils.h       # Python integration utilities
+│── src/
+│   ├── StockData.cpp   # Handles stock data loading
+│   ├── Indicators.cpp  # Implements MA & RSI indicators
+│   ├── Backtest.cpp    # Trading logic & backtesting
+│   ├── Utils.cpp       # Python integration utilities
+│   
+│── download_data.py   # Downloads stock data using yfinance
+│── plot_results.py    # Visualizes signals & portfolio
 │── data/                  # Stores downloaded stock data
 │── output/                # Stores results & plots
 │── README.md
