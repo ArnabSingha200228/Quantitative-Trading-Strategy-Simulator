@@ -22,13 +22,13 @@ void createDirectory(const std::string &dirname) {
 
 int main()
 {
-    std::string symbol, start_date, end_date, period;
+    std::string symbol, start_date, end_date, interval;
     int shortEMA, longEMA;
 
     std::cout << "Enter stock symbol: ";
     std::cin >> symbol;
     std::cout << "Enter Interval: ";
-    std::cin >> period;
+    std::cin >> interval;
     std::cout << "Enter start date (YYYY-MM-DD): ";
     std::cin >> start_date;
     std::cout << "Enter end date (YYYY-MM-DD, optional, press enter for today): ";
@@ -42,7 +42,7 @@ int main()
     std::cin >> longEMA;
 
     // Step 1: Download data via Python
-    callPythonDownload(symbol, period, start_date, end_date);
+    callPythonDownload(symbol, interval, start_date, end_date);
 
     // Step 2: Load stock data
     StockData stockData;
