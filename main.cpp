@@ -27,7 +27,7 @@ int main()
 
     std::cout << "Enter stock symbol: ";
     std::cin >> symbol;
-    std::cout << "Enter period: ";
+    std::cout << "Enter Interval: ";
     std::cin >> period;
     std::cout << "Enter start date (YYYY-MM-DD): ";
     std::cin >> start_date;
