@@ -31,10 +31,8 @@ int main()
     std::cin >> interval;
     std::cout << "Enter start date (YYYY-MM-DD): ";
     std::cin >> start_date;
-    std::cout << "Enter end date (YYYY-MM-DD, optional, press enter for today): ";
-    std::getline(std::cin >> std::ws, end_date);
-    if (end_date.empty())
-        end_date = "";
+    std::cout << "Enter end date (YYYY-MM-DD): ";
+    std::cin >> end_date;
 
     std::cout << "Enter short-term EMA period: ";
     std::cin >> shortEMA;
